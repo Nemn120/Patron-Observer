@@ -7,4 +7,8 @@ public interface WeatherSubject {
     void removeObserver(WeatherObserver weatherObserver);
 
     void sendNotification();
+
+    void removeObserverByIndex(int index);
+
+    String showInfos();
 }

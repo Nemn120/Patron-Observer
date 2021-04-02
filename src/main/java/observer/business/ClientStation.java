@@ -15,7 +15,22 @@ public class ClientStation implements WeatherObserver {
     @Override
     public void update() {
         currentTemp = station.getTemp();
-        System.out.println("TV Station, " + name + ", received a notification. " +
-                "The current temperature is " + currentTemp + " degrees Fahrenheit.");
+        System.out.println(this.showInfo());
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public int getCurrentTemp() {
+        return currentTemp;
+    }
+
+    @Override
+    public String showInfo() {
+        return "Estacion TV, " + name + ", recibe notificacion. " +
+                "Temperatura actual es " + currentTemp + " centigrados";
     }
 }

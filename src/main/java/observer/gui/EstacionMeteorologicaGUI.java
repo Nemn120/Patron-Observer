@@ -1,5 +1,10 @@
 package observer.gui;
 
+import observer.business.WeatherCustomer;
+import observer.business.WeatherObserver;
+import observer.business.WeatherStation;
+import observer.business.WeatherSubject;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
@@ -7,7 +12,9 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 public class EstacionMeteorologicaGUI extends JFrame {
     private JPanel estacionPanel;
@@ -21,15 +28,22 @@ public class EstacionMeteorologicaGUI extends JFrame {
     private JTextField nameUserInput;
     private JTextArea showMessageButton;
     private JLabel nameUserLabel;
+    private JTextField textField1;
+    private JTextField unsuscribe;
+    private JButton btnUnsuscribe;
+    private JTextArea logInfo;
     private JPanel panelUnsubscriber;
     private JFrame frameEstacion;
     private List<JButton> listButtonUnsubscribe;
     private String[] columnNames;
     private Object[][] data;
+    WeatherStation weatherStation;
 
     public EstacionMeteorologicaGUI() {
+        this.weatherStation= new WeatherStation("ESTACION FISI", 0);
+
         this.setEstacionPanel(estacionPanel);
-        this.getEstacionPanel().setPreferredSize(new Dimension(580, 400));
+        this.getEstacionPanel().setPreferredSize(new Dimension(450, 300));
         this.setNotificationBotton(notificationBotton);
         this.setUsersTable(usersTable);
         this.setPanelTable(panelTable);
@@ -41,19 +55,21 @@ public class EstacionMeteorologicaGUI extends JFrame {
         this.setShowMessageButton(showMessageButton);
         this.setNameUserLabel(nameUserLabel);
         this.setPanelUnsubscriber(panelUnsubscriber);
+        this.setTextField1(textField1);
         this.setListButtonUnsubscribe(new ArrayList<JButton>());
         this.setColumnNames(new String[]{});
         this.setData(new Object[][]{});
+        this.setLogInfo(logInfo);
 
         this.frameEstacion = new JFrame("EstacionMeteorologicaGUI");
-        this.getAddUserButton().setText("Subscribir usuario");
+        this.getAddUserButton().setText("Subscribir");
         this.getNotificationBotton().setText("Notificar");
         this.getTemperaturaLabel().setText("Temperatura");
         this.getListUsersLabel().setText("Usuarios");
-        this.getNameUserLabel().setText("Nombre de nuevo Usuario");
-        //this.getInfoTemperatura().setPreferredSize(new Dimension(400, 50));
-        this.getInfoTemperatura().setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
-        this.getShowMessageButton().setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+        this.getNameUserLabel().setText("Nombre");
+        this.getNameUserInput().setSize(new Dimension(10,10));
+        this.getTextField1().setSize(new Dimension(10,10));
+
     }
 
     public static void main(String[] args) {
@@ -65,11 +81,8 @@ public class EstacionMeteorologicaGUI extends JFrame {
         this.subscribeUser();
         this.setColumnsAndRows();
         this.setDataTableUsers();
-        this.setMessageForNotification();
-        this.sentNotificacion();
-        this.showMessageNotification();
-        this.setButtonsUnsbuscribe();
-        this.selectUnsubscribe();
+        this.unsubscribe();
+        this.sendTemp();
 
         this.getFrameEstacion().setContentPane(this.getEstacionPanel());
         this.getFrameEstacion().setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -79,41 +92,23 @@ public class EstacionMeteorologicaGUI extends JFrame {
     }
 
     public void setColumnsAndRows() {
-        String[] columnNames = {"N°", "Nombre", "Temperatura"};
-        Object[][] data = {
-                {"1", "Smith", "18°C"},
-                {"2", "Doe", "23°C"},
-                {"3", "Black", "24°C"},
-                {"4", "White", "27°C"},
-                {"5", "Brown", "19°C"}
-        };
+        String[] columnNames = {"N°", "Nombre", "Temperatura C°"};
+        int rows = weatherStation.getSetOfWeatherObservers().size();
+         Object[][] table = new Object[rows][3];
+            for (int i = 0; i < rows; i++) {
+                for(int j = 0; j< 3; j++){
+                    if(j == 0){
+                        table[i][j] = i+1;
+                    }else if(j== 1){
+                        table[i][j] = weatherStation.getSetOfWeatherObservers().get(i).getName();
+                    }else if(j== 2) {
+                        table[i][j] = weatherStation.getSetOfWeatherObservers().get(i).getCurrentTemp();
+                    }
+                }
+            }
         this.setColumnNames(columnNames);
-        this.setData(data);
-    }
-
-    public void showMessageNotification() {
-        this.getShowMessageButton().addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if(SwingUtilities.isLeftMouseButton(e)) {
-                    //Operacion para mostrar el mensaje de notifcacion de los usuarios
-
-                }
-            }
-        });
-    }
-
-    public void sentNotificacion() {
-        this.getNotificationBotton().addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if(SwingUtilities.isLeftMouseButton(e)) {
-                    //Operacion de enviar notificacion
-
-                    JOptionPane.showMessageDialog(null, "Se ha enviado la notificación a los usuarios");
-                }
-            }
-        });
+        this.setData(table);
+        getUsersTable().setModel(new DefaultTableModel(getData(), getColumnNames())); // APORTE DE VICTOR !!
     }
 
     public void subscribeUser() {
@@ -121,62 +116,58 @@ public class EstacionMeteorologicaGUI extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if(SwingUtilities.isLeftMouseButton(e)) {
+                    WeatherCustomer wc = new WeatherCustomer(nameUserInput.getText(),weatherStation);
+                    weatherStation.addObserver(wc);
                     //Operacion para subscribir
+                    JOptionPane.showMessageDialog(null, "Usuario suscrito");
+                    System.out.println(nameUserInput.getText());
+                    setColumnsAndRows();
                 }
             }
         });
     }
 
-    public void setButtonsUnsbuscribe() {
-        int cantUsers = 5;
-        for(int i=0; i<cantUsers; i++) {
-            JButton unsubscribeButton = new JButton("Usuario Nª " + String.valueOf(i+1).concat(" Unsubscribe"));
-            unsubscribeButton.setPreferredSize(new Dimension(200, 20));
-            this.getListButtonUnsubscribe().add(unsubscribeButton);
-        }
-        Box box = Box.createVerticalBox();
-        for(int i=0; i<this.getListButtonUnsubscribe().size(); i++) {
-            box.add(this.getListButtonUnsubscribe().get(i));
-        }
-        this.getPanelUnsubscriber().add(box);
+    public void sendTemp(){
+        this.getNotificationBotton().addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if(SwingUtilities.isLeftMouseButton(e)) {
+                    weatherStation.setTemp(Integer.parseInt(textField1.getText()));
+                    JOptionPane.showMessageDialog(null, "Temperatura enviada");
+                    setColumnsAndRows();
+                    showInfo();
+                }
+            }
+        });
+
     }
 
-    public void unsubscribe(int pos) {
-        this.getListButtonUnsubscribe().get(pos).addMouseListener(new MouseAdapter() {
+
+    public void unsubscribe() {
+      this.getBtnUnsuscribe().addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if(SwingUtilities.isLeftMouseButton(e)) {
                     //Operacion para unsubscribe por indice
-                    System.out.println(pos);
-                    getUsersTable().setModel(new DefaultTableModel(getData(), getColumnNames())); // setear la nuvea lista para rows y columns
-                    setDataTableUsers();
+                    if(!unsuscribe.getText().isEmpty()){
+                        int index=Integer.parseInt(unsuscribe.getText())-1;
+                        if(index >=0 && index <= weatherStation.getSetOfWeatherObservers().size());
+                        weatherStation.removeObserverByIndex(index);
+                        setColumnsAndRows();
+                        showInfo();
+                    }
                 }
             }
-        });
+       });
+
     }
 
-    public void selectUnsubscribe() {
-        int cantUsers = 5;
-        for(int i=0; i<cantUsers; i++) {
-            this.unsubscribe(i);
-        }
-    }
-
-    public void setMessageForNotification() {
-        //Operacion para setear los mensajes de temepratura
-        this.getInfoTemperatura().setText("18°C - Celsius");
-    }
 
     public void setDataTableUsers() {
 
         DefaultTableModel dm = new DefaultTableModel();
         dm.setDataVector(this.getData(), this.getColumnNames());
         this.getUsersTable().setModel(dm);
-        //JScrollPane scrollPane = new JScrollPane(this.getUsersTable());
-        //this.getUsersTable().setBounds(30, 40, 200, 300);
-        //this.getFrameEstacion().add(scrollPane);
-        //TableCellRenderer buttonRenderer = new JTableButtonRenderer();
-        //this.getUsersTable().getColumn("Vegetarian").setCellRenderer(buttonRenderer);
         this.getUsersTable().setFillsViewportHeight(true);
         this.getPanelTable().setLayout(new BorderLayout());
         this.getPanelTable().add(this.getUsersTable().getTableHeader(), BorderLayout.PAGE_START);
@@ -193,7 +184,8 @@ public class EstacionMeteorologicaGUI extends JFrame {
         }
     }
 
-    public void clearTable() {
+    public void showInfo() {
+        this.logInfo.setText(weatherStation.showInfos());
 
     }
 
@@ -323,5 +315,29 @@ public class EstacionMeteorologicaGUI extends JFrame {
 
     public void setData(Object[][] data) {
         this.data = data;
+    }
+
+    public JTextField getTextField1() {
+        return textField1;
+    }
+
+    public void setTextField1(JTextField textField1) {
+        this.textField1 = textField1;
+    }
+
+    public JButton getBtnUnsuscribe() {
+        return btnUnsuscribe;
+    }
+
+    public void setBtnUnsuscribe(JButton btnUnsuscribe) {
+        this.btnUnsuscribe = btnUnsuscribe;
+    }
+
+    public JTextArea getLogInfo() {
+        return logInfo;
+    }
+
+    public void setLogInfo(JTextArea logInfo) {
+        this.logInfo = logInfo;
     }
 }

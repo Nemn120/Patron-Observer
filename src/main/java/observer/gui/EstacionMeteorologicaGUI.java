@@ -63,13 +63,18 @@ public class EstacionMeteorologicaGUI extends JFrame {
         this.setMessageForNotification();
         this.sentNotificacion();
         this.showMessageNotification();
-        this.Unsubscribe();
+        this.setButtonsUnsbuscribe();
+        this.selectUnsubscribe();
 
         this.getFrameEstacion().setContentPane(this.getEstacionPanel());
         this.getFrameEstacion().setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.getFrameEstacion().pack();
         this.getFrameEstacion().setLocationRelativeTo(null);
         this.getFrameEstacion().setVisible(true);
+    }
+
+    public void setListUsers() {
+
     }
 
     public void showMessageNotification() {
@@ -114,7 +119,6 @@ public class EstacionMeteorologicaGUI extends JFrame {
             JButton unsubscribeButton = new JButton("Usuario Nª " + String.valueOf(i+1).concat(" Unsubscribe"));
             unsubscribeButton.setPreferredSize(new Dimension(200, 20));
             this.getListButtonUnsubscribe().add(unsubscribeButton);
-            System.out.println(i);
         }
         Box box = Box.createVerticalBox();
         for(int i=0; i<this.getListButtonUnsubscribe().size(); i++) {
@@ -123,18 +127,22 @@ public class EstacionMeteorologicaGUI extends JFrame {
         this.getPanelUnsubscriber().add(box);
     }
 
-    public void Unsubscribe() {
-        this.setButtonsUnsbuscribe();
-        for (int i=0; i<this.getListButtonUnsubscribe().size(); i++) {
-            this.getListButtonUnsubscribe().get(i).addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    if(SwingUtilities.isLeftMouseButton(e)) {
-                        //Operacion para unsubscribe por indice
-
-                    }
+    public void unsubscribe(int pos) {
+        this.getListButtonUnsubscribe().get(pos).addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if(SwingUtilities.isLeftMouseButton(e)) {
+                    //Operacion para unsubscribe por indice
+                    System.out.println(pos);
                 }
-            });
+            }
+        });
+    }
+
+    public void selectUnsubscribe() {
+        int cantUsers = 5;
+        for(int i=0; i<cantUsers; i++) {
+            this.unsubscribe(i);
         }
     }
 

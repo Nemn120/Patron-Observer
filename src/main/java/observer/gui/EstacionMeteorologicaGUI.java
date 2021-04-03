@@ -119,7 +119,7 @@ public class EstacionMeteorologicaGUI extends JFrame {
                     WeatherCustomer wc = new WeatherCustomer(nameUserInput.getText(),weatherStation);
                     weatherStation.addObserver(wc);
                     //Operacion para subscribir
-                    JOptionPane.showMessageDialog(null, "Usuario suscrito");
+                    JOptionPane.showMessageDialog(null, "Usuario subscrito");
                     System.out.println(nameUserInput.getText());
                     setColumnsAndRows();
                 }

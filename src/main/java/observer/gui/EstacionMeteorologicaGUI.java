@@ -108,7 +108,7 @@ public class EstacionMeteorologicaGUI extends JFrame {
             }
         this.setColumnNames(columnNames);
         this.setData(table);
-        getUsersTable().setModel(new DefaultTableModel(getData(), getColumnNames())); // APORTE DE VICTOR !!
+        getUsersTable().setModel(new DefaultTableModel(getData(), getColumnNames()));
     }
 
     public void subscribeUser() {
